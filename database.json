@@ -1,0 +1,7 @@
+{
+    "host": "customer-data.cfwxhfzwpudu.ap-northeast-2.rds.amazonaws.com",
+    "user": "admin",
+    "password": "hyojin0115",
+    "port": "3306",
+    "database": "customers"
+}
