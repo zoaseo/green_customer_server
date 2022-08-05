@@ -8,6 +8,8 @@ const fs = require("fs");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+const multer = require("multer");
+
 const dbinfo = fs.readFileSync('./database.json');
 // 받아온 json데이터를 객체형태로 변경 JSON.parse
 const conf = JSON.parse(dbinfo);
@@ -27,10 +29,47 @@ const connection = mysql.createConnection({
 })
 app.use(express.json());
 app.use(cors());
+app.use("/upload",express.static("upload"));
 
 // 서버실행
 app.listen(port, ()=>{
     console.log("고객 서버가 돌아가고 있습니다.");
+})
+
+// gallery 포스트 요청시
+app.post("/gallery", async (req,res) => {
+    const { usermail, title, imgurl, desc } = req.body;
+    connection.query("insert into customer_gallery(`title`,`imgurl`,`desc`,`usermail`) values(?,?,?,?)",
+    [title, imgurl, desc, usermail],
+    (err, result, fields)=>{
+        res.send('등록되었습니다.');
+    })
+})
+// gallery 겟 요청시
+app.get("/gallery", async (req,res) => {
+    connection.query("select * from customer_gallery",
+    (err, result, fields)=>{
+        res.send(result)
+    })
+})
+
+// 파일 요청시 파일이 저장될 경로와 파일이름(요청된 원본 파일이름) 지정
+const storage = multer.diskStorage({
+    destination: "./upload",
+    filename: function(req, file, cb){
+        cb(null, file.originalname);
+    }
+})
+// 업로드 객체
+const upload = multer({
+    storage:storage,
+    limits: {fieldSize: 1000000}
+})
+// upload경로로 포스트 요청이 왔을 때 응답
+app.post("/upload", upload.single("img"), function(req, res, next){
+    res.send({
+        imageUrl: req.file.filename
+    })
 })
 
 // app.get("경로", 함수)
